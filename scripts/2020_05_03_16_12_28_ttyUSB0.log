@@ -1,0 +1,10 @@
+2020-05-03 16:12:28.895592 : Started Signal Trace.
+2020-05-03 16:12:28.895592 : Serial port opened successfully. Port name = /dev/ttyUSB0
+2020-05-03 16:12:29.907874 : New file opened successfully. File name = /home/pi/Desktop/Share/Data/2020_05/03/2020_05_03_16_12_29_ttyUSB0.csv
+2020-05-03 16:12:29.909911 : Start command transmitted (1st try).
+2020-05-03 16:12:29.909911 : Start command transmitted (2nd try).
+2020-05-03 16:12:29.909911 : Start command echo back received.
+2020-05-03 16:12:29.909911 : ROS Settings finished.
+2020-05-03 16:12:34.376800 : 1 sampled previous 1 hour.  New file opened successfully. File name = /home/pi/Desktop/Share/Data/2020_05/03/2020_05_03_16_12_31.csv
+2020-05-03 16:12:34.376800 : Sample number error. cur_num = 0, bef_num = 0
+2020-05-03 16:31:08.743095 : Received signal 2. End this process/

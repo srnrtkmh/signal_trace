@@ -1,0 +1,19 @@
+2020-05-04 03:16:13.783553 : Started Signal Trace.
+2020-05-04 03:16:13.783553 : Serial port opened successfully. Port name = /dev/ttyUSB0
+2020-05-04 03:16:14.796081 : New file opened successfully. File name = /home/pi/Desktop/Share/Data/2020_05/04/2020_05_04_03_16_14_ttyUSB0.csv
+2020-05-04 03:16:14.798351 : Start command transmitted (1st try).
+2020-05-04 03:16:14.798351 : Start command transmitted (2nd try).
+2020-05-04 03:16:14.798351 : Start command echo back received.
+2020-05-04 03:16:14.798351 : ROS Settings finished.
+2020-05-04 03:16:19.272530 : Sample number error. cur_num = 0, bef_num = 0
+2020-05-04 04:00:02.273702 : 2625 sampled previous 1 hour.  New file opened successfully. File name = /home/pi/Desktop/Share/Data/2020_05/04/2020_05_04_04_00_00.csv
+2020-05-04 05:00:02.273742 : 3599 sampled previous 1 hour.  New file opened successfully. File name = /home/pi/Desktop/Share/Data/2020_05/04/2020_05_04_05_00_00.csv
+2020-05-04 06:00:02.273790 : 3600 sampled previous 1 hour.  New file opened successfully. File name = /home/pi/Desktop/Share/Data/2020_05/04/2020_05_04_06_00_00.csv
+2020-05-04 07:00:02.273823 : 3599 sampled previous 1 hour.  New file opened successfully. File name = /home/pi/Desktop/Share/Data/2020_05/04/2020_05_04_07_00_00.csv
+2020-05-04 08:00:02.273759 : 3599 sampled previous 1 hour.  New file opened successfully. File name = /home/pi/Desktop/Share/Data/2020_05/04/2020_05_04_08_00_00.csv
+2020-05-04 09:00:03.274561 : 3600 sampled previous 1 hour.  New file opened successfully. File name = /home/pi/Desktop/Share/Data/2020_05/04/2020_05_04_09_00_00.csv
+2020-05-04 10:00:02.273731 : 3599 sampled previous 1 hour.  New file opened successfully. File name = /home/pi/Desktop/Share/Data/2020_05/04/2020_05_04_10_00_00.csv
+2020-05-04 11:00:02.273925 : 3599 sampled previous 1 hour.  New file opened successfully. File name = /home/pi/Desktop/Share/Data/2020_05/04/2020_05_04_11_00_00.csv
+2020-05-04 12:00:02.273712 : 3599 sampled previous 1 hour.  New file opened successfully. File name = /home/pi/Desktop/Share/Data/2020_05/04/2020_05_04_12_00_00.csv
+2020-05-04 13:00:03.273696 : 3600 sampled previous 1 hour.  New file opened successfully. File name = /home/pi/Desktop/Share/Data/2020_05/04/2020_05_04_13_00_00.csv
+2020-05-04 13:37:59.116153 : Received signal 2. End this process/

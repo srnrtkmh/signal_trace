@@ -1,0 +1,114 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="ja" lang="ja">
+<head>
+	<link rel="stylesheet" href="../css/common.css" type="text/css" />
+	
+	<script src="../js/jquery.js" charset="utf-8"></script>
+	<script src="../js/d3.min.js" charset="utf-8"></script>
+	
+	<script type="text/javascript" src="../js/common.js"></script>
+	<script type="text/javascript" src="../scripts/Chart.js"></script>
+	
+	<meta http-equiv="Content-Type" content="text/html; charset=shift-jis" />
+	<meta http-equiv="Content-Style-Type" content="text/css" />
+	<meta http-equiv="Content-Script-Type" content="text/javascript" />
+	<meta http-equiv="imagetoolbar" content="no" />
+	<meta name="description" content="" />
+	<meta name="keywords" content="" />
+	
+	<title>モノづくりが好きなエンジニアのプライベート開発記録</title>
+</head>
+
+<body>
+<div id="top">
+	<div id="header">
+	<h1><a href="../index.html">KEIMLAB's Development Log</a></h1>
+		<div id="pr">
+			<p>モノづくりが好きなエンジニアのプライベート開発記録</p>
+		</div>
+	</div>
+	
+	<div id="menu">
+		<ul>
+			<li><a href="index.html" class="active">トップページ</a></li>
+			<li><a href="profile.html">プロフィール</a></li>
+			<li><a href="product.html">製作記録</a></li>
+			<li><a href="SignalTraceUI/realtime.html">リアルタイムデータ解析</a></li>
+			<li><a href="SignalTraceUI/historical.html">ヒストリカルデータ解析</a></li>
+		</ul>
+	</div>
+	
+	<div id="contents">
+	<!-- ここまで全ページ共通部分 -->
+	
+		<div id="main">
+			
+			<!-- データ選択部 -->
+			<div class="data_source" id="data_source">
+				<div class="data_source_label">
+					<label>Data Source : </label>
+				</div>
+			</div>
+			
+			<!-- チャート描画 -->
+			<div class="time_chart" id="time_chart">
+				<!-- チャート本体 -->
+				<div class="time_chart_contents" id="time_chart_contents">
+					<div id="chart" style="width: 100%; height: 100%"></div>
+					<script src="scripts/usmoak_v3.js" charset="shift-jis"></script>
+				</div>
+				
+				<!-- アイテムリスト -->
+				<div class="time_chart_item">
+					<label>アイテムリスト</label>
+					<div id="item_list" class="item_list"></div>
+				</div>
+			</div>
+			<!-- コントロール -->
+			<div class="time_chart_control" id="time_chart_control">
+				<div class="time_chart_control" id="time_chart_control1" style="height:30px">
+					<button name="drawButton" id="drawButton">描画</button>
+					<label><input type="radio" name="zoomOptionsRadios" id="zoomOptionsRadios1" value="true" checked>x zoom</label>
+					<label><input type="radio" name="zoomOptionsRadios" id="zoomOptionsRadios2" value="false">y zoom</label>
+					<label><input type="radio" name="zoomOptionsRadios" id="zoomOptionsRadios3" value="false">x･y zoom</label>
+					<label>　</label>
+					<button name="changeBackButton" id="changeNowButton">現切替</button>
+					<button name="changeBackButton" id="changeBackButton">前切替</button>
+					<button name="changeNextButton" id="changeNextButton">次切替</button>
+					<label>　</label>
+					<button name="addBackButton" id="addBackButton">前追加</button>
+					<button name="addNextButton" id="addNextButton">次追加</button>
+					<label>　</label>
+					<button name="addBackButton" id="delBackButton">前削除</button>
+					<button name="addNextButton" id="delNextButton">次削除</button>
+					<label>　</label>
+				</div>
+				<div class="time_chart_control" id="time_chart_control2" style="height:30px">
+					<label id="data_length"></label>
+					<label>　</label>
+					<label id="data_length_mabiki"></label>
+					<label>　</label>
+					<label id="data_pointer">間引き:</label><input type="text" name="text_decimate" id="text_decimate" style="width:60px"></input>
+					<button name="addDecimateButton" id="addDecimateButton">＋</button>
+					<button name="decDecimateButton" id="decDecimateButton">－</button>
+				</div>
+				<div class="time_chart_control" id="time_chart_control3" style="height:30px">
+					<label>Date (YYMMDDHH) </label><input type="text" id="date_text" style="width:80px">
+					<button name="dateButton" id="dateButton">更新</button>
+					<label>　Min Date : </label>
+					<label id="min_date"></label>
+					<label>　</label>
+					<label>　Max Date : </label>
+					<label id="max_date"></label>
+				</div>
+			</div>
+		</div><!--main-->
+	
+	<!-- ここから全ページ共通部分 -->
+	</div><!--contents-->
+	<div id="footer">
+		<div class="copyright"> &copy; 2020 KEIMLAB All Rights Reserved.</div>
+	</div>
+</div><!--top-->
+</body>
+</html>

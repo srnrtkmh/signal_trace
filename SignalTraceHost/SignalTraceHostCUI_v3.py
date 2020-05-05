@@ -4,6 +4,7 @@
 #                                                                                                  #
 # FILE : SignalTraceHostCUI_v2.py                                                                  #
 # Memo : 16/07/18 wxPython03.pyをベースに作成開始                                                  #
+#        20/05/05 SignalTraceHostCUI_v2.pyをベースに作成開始                                       #
 #                                                                                                  #
 # Updated     : 2016/07/18                                                                         #
 #             : 2016/07/31 Signal Trace Interface v2 に切り替えて作成中                            #
@@ -22,14 +23,29 @@
 #             : 2016/10/01 csvファイルを切り替える基準時間をcurrentDateからdateCurrentSampleに変更 #
 #             : 2019/12/21 再開発スタート                                                          #
 #             : 2019/12/29 csvファイルのデータラベルを外部ファイルから読み込むように変更           #
-# LastUpdated : 2019/12/29 SignalTraaceNode_THBCに対応するようなソースコードを追加中               #
+#             : 2019/12/29 SignalTraaceNode_THBCに対応するようなソースコードを追加中               #
+#             : 2019/12/30 SignalTraaceNode_THBC, SignalTraceNode_THBに対応するように修正しようと  #
+#                          思ったがサンプル数を指定するだけで特別にコードを用意する必要はなし      #
+#                          データファイル名へのシリアルデバイス名の入れ方をプレフィックスではなく  #
+#                          サフィックスとするように変更                                            #
+#                          Arduino Nanoではシリアルポートの開き方を別途用意しなければならくなった  #
+#                          ため、Arduino MicroとArduino Nanoを実行時の引数で指定するように変更     #
+# LastUpdated : 2020/05/05 関数に分割するようにソースコードを変更中                                #
 #                                                                                                  #
 #                                                                       (C) 2019 Kyohei Umemoto    #
 # How to execute :                                                                                 #
-#     python SignalTraceHostCUI_v2.py [SerialDeviceName] [Number of channels] [Sampling Time(us)]  #
+#     python SignalTraceHostCUI_v2.py [Serial device name] [Label file]                            #
+#                                        [Number of channels] [Sampling time(us)] [Arduino number] #
 #         or                                                                                       #
-#     nohup python SignalTraceHostCUI_v2.py [SerialDeviceName] [Number of channels]                #
-#      [Sampling Time(us)] > [ttyACM?.txt] &                                                       #
+#     nohup python SignalTraceHostCUI_v2.py [Serial device name] [Label file]                      #
+#                      [Number of channels] [Sampling time(us)] [Arduino number] > [tty????.txt] & #
+#                                                                                                  #
+# Argument Discription :                                                                           #
+#     Serial device name : 接続するシリアルデバイス名(絶対パス) 例:"/dev/ttyACM0", "/dev/ttyUSB1"  #
+#     Label file         : データファイルのラベルとして使用するファイル名(相対パス)                #
+#     Number of channels : シリアルデバイスから送付されてくるデータ項目数                          #
+#     Sampling time(us)  : シリアルデバイスから送付されてくるデータのサンプリングタイム[us]        #
+#     Arduino number     : 使用するarduinoに合わせた数値　例 : Arduino Micro : 0, Arduino nano : 1 #
 #                                                                                                  #
 # How to end                                                                                       #
 #     kill -INT [PID]                                                                              #
@@ -78,17 +94,17 @@ before_volts = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
 di_data = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
 before_di_data = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
 
-serialDeviceName = "/dev/ttyACM1"			# シリアルデバイスの設定
-serialChNum = 32							# I/Oチャンネル数の設定
-baudrate = 115200							# ボーレート設定
-parentPath = "/home/pi/Desktop/Share/"		# 親ディレクトリの設定
-dataPath = "/home/pi/Desktop/Share/Data/"	# データ用ディレクトリの設定
-label_file_name = "/home/pi/Desktop/Share/SignalTraceHost_v2/SignalTraceHost_param.csv"	# 
-f = []										# CSV出力用ファイルオブジェクト
-strCsvName = ""								# ファイル名用変数
-file_header = ""							# CSVファイルのヘッダー
-preffix = ""								# ファイル名プレフィックス
-suffix = ""									# ファイル名サフィックス
+serialDeviceName = ""	# シリアルデバイスの設定
+serialChNum = 32		# I/Oチャンネル数の設定
+baudrate = 115200		# ボーレート設定
+parentPath = ""			# 親ディレクトリの設定
+dataPath = ""			# データ用ディレクトリの設定
+labelFileName = ""		# ラベル設定ファイル名
+f = []					# CSV出力用ファイルオブジェクト
+strCsvName = ""			# ファイル名用変数
+file_header = ""		# CSVファイルのヘッダー
+preffix = ""			# ファイル名プレフィックス
+suffix = ""				# ファイル名サフィックス
 
 before_nokori = ""
 one_hour_cnt = 0
@@ -122,7 +138,13 @@ def receive_signal(signum, stack):
 	sys.exit(0)
 
 #==================================================================================================#
-# SignalTraceNode_THBC用処理                                                                       #
+# signal_trace_init Function                                                                       #
+#==================================================================================================#
+def signal_trace_init():
+	print "Future works..."
+
+#==================================================================================================#
+# signal_trace_host Function                                                                       #
 #==================================================================================================#
 
 
@@ -132,25 +154,30 @@ def receive_signal(signum, stack):
 if __name__ == '__main__':
 	# 引数処理
 	param = sys.argv
-	if len(param) >= 4:
-		serialDeviceName = param[1]
-		ioChNum = int(param[2])
-		dt = int(param[3])
+	if len(param) >= 6:
+		serialDeviceName = param[1]		# シリアルデバイスへのパス
+		labelFileName = param[2]		# ラベルとして使用するcsvファイル
+		ioChNum = int(param[3])			# 取得するデータの項目数
+		dt = int(param[4])				# 取得するデータの周期
+		arduinoNum = int(param[5]);		# 使用するArduino区分　0:Arduino Micro　1:Arduino Nano ※シリアルポートのセットアップに差異あり
+		usr_id_str = param[6]			# 作成するファイルのユーザー名
 	else:
-		print "Invalid argument. Valid command : \"" + param[0] + " [Serial device name] [Number of I/O channels] [Sampling time (microseconds)]\""
+		print "Invalid argument. Valid command : \"" + param[0] + " [Serial device name] [Label file] [Number of I/O channels] [Sampling time (microseconds)] [Arduino number] [User name]\""
 		sys.exit(1)
 	
 	# 初期設定
-	currentDate = datetime.datetime.today()	# today()メソッドで現在日付・時刻のdatetime型データの変数を取得
-	user_id = pwd.getpwnam('pi')			# ユーザー"pi"のUID、GIDを取得
-	preffix = ""							# csvファイル、logファイルのプレフィックスをデバイス名にて設定
-	suffix = "_" + param[1][5:12]			# csvファイル、logファイルのサフィックスをデバイス名にて設定
-	pid = os.getpid()						# 実行プロセスのPIDを取得
+	currentDate = datetime.datetime.today()		# today()メソッドで現在日付・時刻のdatetime型データの変数を取得
+	user_id = pwd.getpwnam(usr_id_str)			# ユーザー"pi"のUID、GIDを取得
+	preffix = ""								# csvファイル、logファイルのプレフィックスをデバイス名にて設定
+	suffix = "_" + param[1][5:12]				# csvファイル、logファイルのサフィックスをデバイス名にて設定
+	pid = os.getpid()							# 実行プロセスのPIDを取得
+	dataPath = "/home/" + usr_id_str + "/Desktop/Share/Data/"	# データ用ディレクトリの設定
+	parentPath = "/home/" + usr_id_str + "/Desktop/Share/"		# 親ディレクトリの設定
 	
 	# csvファイルのラベルを読み込み
-	label_file = open(label_file_name, "r")
+	label_file = open(labelFileName, "r")
 	label_list = label_file.readlines()
-	file_header = label_list[0] + "\n"
+	file_header = label_list[0].replace("\n", "") + "\n"
 	
 	# dataPathが存在しなければ作成
 	if not os.path.exists(dataPath):
@@ -159,11 +186,11 @@ if __name__ == '__main__':
 		os.chmod(dataPath, 0777)							# 権限変更"-rwxrwxrwx
 	
 	# シグナルハンドル関係の設定
-	pid_file_name = unicode(parentPath + preffix + "PID.txt", encoding='shift-jis')	# PID表示用のファイル名を設定
-	pid_file = open(pid_file_name, 'w')												# PID表示用ファイルを新規作成
-	pid_file.write(str(pid))														# PID表示用ファイルにPID書き込み
-	pid_file.flush()																# PID表示用ファイルへの書き込み反映
-	signal.signal(signal.SIGINT, receive_signal)									# SIGINTを受け取ったら指定関数を呼び出すように設定
+	pid_file_name = unicode(parentPath + preffix + "PID" + suffix + ".txt", encoding='shift-jis')	# PID表示用のファイル名を設定
+	pid_file = open(pid_file_name, 'w')																# PID表示用ファイルを新規作成
+	pid_file.write(str(pid))																		# PID表示用ファイルにPID書き込み
+	pid_file.flush()																				# PID表示用ファイルへの書き込み反映
+	signal.signal(signal.SIGINT, receive_signal)													# SIGINTを受け取ったら指定関数を呼び出すように設定
 	
 	# ログファイルを開く
 	log_file_name = unicode(parentPath + preffix + currentDate.strftime('%Y_%m_%d_%H_%M_%S') + suffix + ".log", encoding='shift-jis')
@@ -176,7 +203,13 @@ if __name__ == '__main__':
 	
 	# シリアル通信ポートをセットアップ
 	try:
-		con = serial.Serial(serialDeviceName, baudrate, timeout=0.2, rtscts=True, dsrdtr=True)	# ポートのオープン(timeoutの設定は適当、rtsctsとdsrdtrはTrueにしておかないとArduinoMicroとは通信できない)
+		if arduinoNum == 0:
+			con = serial.Serial(serialDeviceName, baudrate, timeout=0.2, rtscts=True, dsrdtr=True)	# ポートのオープン(timeoutの設定は適当、rtsctsとdsrdtrはTrueにしておかないとArduinoMicroとは通信できない)
+		elif arduinoNum == 1:
+			con = serial.Serial(serialDeviceName, baudrate, timeout=0.2, rtscts=False, dsrdtr=False)	# ポートのオープン(timeoutの設定は適当、rtsctsとdsrdtrはFalseにしておかないとArduinoNanoとは通信できない)
+		else:
+			log_file.write(str(currentDate) + " : arduino number is incorrect. arduinoNum = " + arduinoNum + "\n")
+			log_file.write(str(currentDate) + " : arduino number should be 0 (Arduino Micro) or 1 (Arduino Nano)\n")
 		time.sleep(1.0)
 	except serial.SerialException as e:
 		print "SerialException : " + str(e)
@@ -227,17 +260,17 @@ if __name__ == '__main__':
 	tmp_str = con.read(con.inWaiting())		# 読み取りバッファを空にしておく(前に記述した1回だけだと空にならない時がある(?))
 	con.write("s")							# スタートコマンドを送信(1回目)
 	log_file.write(str(currentDate) + " : Start command transmitted (1st try).\n")			# スタートコマンドを送った旨ログ
-	time.sleep(1.0)							# スタートコマンドのコールバックまで1秒間待ち
+	time.sleep(3.0)							# スタートコマンドのコールバックまで1秒間待ち
 	tmp_str = con.read()					# スタートコマンドのコールバックを確認
 	if tmp_str != "s":
 		con.write("s")						# スタートコマンドを送信(2回目)
 		log_file.write(str(currentDate) + " : Start command transmitted (2nd try).\n")		# スタートコマンドを送った旨ログ
-		time.sleep(1.0)						# スタートコマンドのコールバックまで1秒間待ち
+		time.sleep(3.0)						# スタートコマンドのコールバックまで1秒間待ち
 		tmp_str = con.read()				# スタートコマンドのコールバックを確認
 		if tmp_str != "s":
 			con.write("s")					# スタートコマンドを送信(3回目)
 			log_file.write(str(currentDate) + " : Start command transmitted (3rd try).\n")	# スタートコマンドを送った旨ログ
-			time.sleep(1.0)					# スタートコマンドのコールバックまで1秒間待ち
+			time.sleep(3.0)					# スタートコマンドのコールバックまで1秒間待ち
 			tmp_str = con.read()			# スタートコマンドのコールバックを確認
 			if tmp_str != "s":
 				print "Serial Device did not transmit call back : " + tmp_str
@@ -265,8 +298,8 @@ if __name__ == '__main__':
 					# サンプルナンバーの妥当性評価(1レコード中に先頭・尾端サンプルナンバーが一致かつ今回ナンバーは前回ナンバー+1をチェック)
 					before_sample_number1 = current_sample_number1
 					before_sample_number2 = current_sample_number2
-					current_sample_number1 = data[0]
-					current_sample_number2 = data[ioChNum + 1]
+					current_sample_number1 = int(data[0])
+					current_sample_number2 = int(data[ioChNum + 1])
 					if current_sample_number1 != current_sample_number2:
 						log_file.write(str(currentDate) + " : Sample number error. num1 = " + str(current_sample_number1) + ", num2 = " + str(current_sample_number2) + "\n")
 					
@@ -280,7 +313,8 @@ if __name__ == '__main__':
 					tmp_value_list = tmp_list[i].split(",")
 					if len(tmp_value_list) == ioChNum + 2:
 						for j in range(0, len(tmp_value_list)):
-							data[j] = int(tmp_value_list[j])
+							# data[j] = int(tmp_value_list[j])
+							data[j] = tmp_value_list[j]
 					else:
 						log_file.write(str(currentDate) + " : " + "record bytes not invalid. len(tmp_value_list) = " + str(len(tmp_value_list)) + "\n")
 					

@@ -1,10 +1,8 @@
 ﻿Name,Path,Suffix,ConfigFile
-STH1_USB0,..\data\SIGNALTRACE\sth1\,_ttyUSB0.csv,..\data\Default_STH1_USB0.csv
-STH1_USB1,..\data\SIGNALTRACE\sth1\,_ttyUSB1.csv,..\data\Default_STH1_USB1.csv
-STH1_ACM0,..\data\SIGNALTRACE\sth1\,_ttyACM0.csv,..\data\Default_STH1_ACM0.csv
-STH2_ACM0,..\data\SIGNALTRACE\sth2\,_ttyACM0.csv,..\data\Default_STH2_ACM0.csv
-STH2_ACM1,..\data\SIGNALTRACE\sth2\,_ttyACM1.csv,..\data\Default_STH2_ACM1.csv
-TCM_AGC1,..\data\DATATRACE\TCM\AGC1\,,..\data\Default_TCM_AGC1.csv
-TCM_AGC2,..\data\DATATRACE\TCM\AGC2\,,..\data\Default_TCM_AGC2.csv
-TCM_主幹1,..\data\DATATRACE\TCM\主幹1\,,..\data\Default_TCM_主幹1.csv
-TCM_主幹2,..\data\DATATRACE\TCM\主幹2\,,..\data\Default_TCM_主幹2.csv
+RDA_NODE1_USB0,../data/SIGNALTRACE/rdanode1/,_ttyUSB0.csv,./scripts/Default_RDA_NODE1_USB0.csv
+RDA_NODE2_USB0,../data/SIGNALTRACE/rdanode2/,_ttyUSB0.csv,../SignalTraceUI/scripts/Default_RDA_NODE2_USB0.csv
+RDA_NODE3_USB0,../data/SIGNALTRACE/rdanode3/,_ttyUSB0.csv,../SignalTraceUI/scripts/Default_RDA_NODE3_USB0.csv
+TCM_AGC1,../data/DATATRACE/TCM/AGC1/,,../data/Default_TCM_AGC1.csv
+TCM_AGC2,../data/DATATRACE/TCM/AGC2/,,../data/Default_TCM_AGC2.csv
+TCM_主幹1,../data/DATATRACE/TCM/主幹1/,,../data/Default_TCM_主幹1.csv
+TCM_主幹2,../data/DATATRACE/TCM/主幹2/,,../data/Default_TCM_主幹2.csv

@@ -1,6 +1,6 @@
 //================================================================================================//
 //                                                                                                //
-// FILE : usmoak_v3.js                                                                            //
+// FILE : historical_v1.js                                                                        //
 // MEMO : Universal - Steal Mill Operation Analysing Kit のデータ表示部を担うJavaScript           //
 //                                                                                                //
 // UPDATE 16/08/26 : 紆余曲折あって今の形ができる                                                 //
@@ -27,39 +27,26 @@
 //                   これからマウス位置とグラフ上の位置関係はすり合わせ予定                       //
 //        20/01/18 : 間引き関数を再実装。マウス位置に応じた各グラフの値を表示する機能を追加       //
 //                   前後データを削除する機能も追加                                               //
-//        20/05/06 : ノード名変更に対応するように記載変更                                         //
+//        20/05/05 : ノード名変更に対応するように記載変更                                         //
+//        20/05/06 : 名称変更(usmoak_v3.js → historical.js)                                      //
+//                   マウス位置の横軸値表示を追加                                                 //
+//                   グラフエリア上でクリックした箇所の数値キャプチャ、1回目、2回目まで表示       //
+//                   1回目、2回目で選択した間の基本的な統計値を表示                                                                             //
 //                                                                                                //
 //================================================================================================//
 
 //================================================================================================//
+// Import modules                                                                                 //
+//================================================================================================//
+document.write("<script src=\"./scripts/data_src_class.js\"></script>");	// 環境制約
+// import DataSource from 'data_src_class.js'
+
+//================================================================================================//
 // Constants                                                                                      //
 //================================================================================================//
-// ネーミングルール区分
-const TYPE_ST = 0;
-const TYPE_DT = 1;
-
-// ライン選択区分
-const HOT     = 0;
-const SANPL   = 1;
-const TCM     = 2;
-const CAL     = 3;
-const BAF     = 4
-const TPM     = 5;
-const CPL     = 6;
-const ICHIETL = 7;
-const NIETL   = 8;
-const TPSL    = 9;
-
 // レンジ区分
 const RANGE_DEFAULT = 0;
 const RANGE_SPECIAL = 1;
-
-// データファイルコントロール区分
-const ADD_NONE = 0;
-const ADD_NEXT = 1;
-const ADD_BACK = 2;
-const DEL_NEXT = 1;
-const DEL_BACK = 2;
 
 //================================================================================================//
 // Global Variables                                                                               //
@@ -93,7 +80,6 @@ var dataDefault = [];
 
 // アイテムリスト
 var item_list;
-
 var kkk = 0;
 
 // データソースオブジェクトの配列
@@ -104,8 +90,9 @@ var intClientX = 0, intClientY = 0;
 var intGlobalX = 0, intGlobalY = 0;
 var intScreenX = 0, intScreenY = 0;
 var mouse_pos_x = 0, mouse_pos = 0;
-var mouse_text_margin_x = 5, mouse_text_margin_y = 20;
-var mouse_pos_date = 0, mouse_pos_index = 0;
+var mouse_text_margin_x = 5, mouse_text_margin_y = 20, mouse_text_margin_date = 0;
+var mouse_pos_date = 0, mouse_pos_index = 0, mouse_pos_value = [];
+var mouse_pos_index1 = 0, mouse_pos_index2 = 0;
 
 // サンプル数の設定
 var sample_num = 3600;
@@ -123,219 +110,23 @@ var date_cur = 0;
 var initial_draw = 0;	// 0 : 描画未実施、1 : 描画実施済
 
 //================================================================================================//
-// Data Source Object                                                                             //
-//================================================================================================//
-function DataSource(){
-	this.enable = 0;
-	this.send_status =  0;
-	this.receive_status = 0;
-	this.intDataType = 0;
-	this.strName = [];
-	this.strPath = [];
-	this.strSuffix = [];
-	this.strDefaultPath = [];
-	this.strDataItemList = [];
-	this.strDrawItemList = [];
-	this.data_series = [];
-	this.data_default = [];
-	
-	this.getItemList = function(strFilename){
-	}
-	
-	// 新しいデータを読み込み、末尾に追加する
-	this.getNewDataFileNext = function(strFileName, intAdd){
-		var dateFormat1 = d3.time.format("%Y/%m/%d %H:%M:%S.%L");
-		var dateFormat2 = d3.time.format("\'%Y/%m/%d %H:%M:%S.%L");
-		var getCSV = d3.dsv(',', 'text/csv; charset=shift-jis');
-		
-		// これまで読み込んだデータを引き継ぐかどうか設定
-		if(intAdd == ADD_NONE){
-			this.data_series = [];
-		}else if(intAdd == ADD_NEXT){
-		}else{
-			console.log("getNewDataFileNext : Error intAdd is incorrect. intAdd = " + intAdd);
-		}
-		
-		// データタイプに応じて読み込み処理を実施
-		if(this.intDataType == TYPE_ST){
-			getCSV(strFileName, (error, data) => {
-				// data file
-				data.forEach((d) => {d.HostTime = dateFormat1.parse(d.HostTime);});			// 文字列→日時変換
-				data.forEach((d) => {d.SampleTime = dateFormat1.parse(d.SampleTime);});		// 文字列→日時変換
-				
-				// もしsample_num個でなかったらそれに合うように変更を加える
-				var tmp_data = data;
-				if(tmp_data.length < sample_num){					// sample_num個未満の場合
-					var tmp_diff = sample_num - tmp_data.length;
-					for(var i = 0; i < tmp_diff; i++){
-						tmp_data.splice(parseInt(tmp_data.length * (i + 1) / tmp_diff - 1), 0, tmp_data[parseInt(tmp_data.length * (i + 1) / tmp_diff - 1)]);
-					}
-				}
-				else if(data.length > sample_num){				// sample_num個超の場合
-					var tmp_diff = tmp_data.length - sample_num;
-					for(var i = 0; i < tmp_diff; i++){
-						tmp_data.splice(parseInt(tmp_data.length * (i + 1) / tmp_diff - 1), 1);
-					}
-				}
-				
-				for(var i = 0; i < tmp_data.length; i++){
-					this.data_series.push(tmp_data[i]);
-				}
-				
-				total_sample_num = this.data_series.length;
-				
-				// Debug Section
-				// console.log("↓data");
-				// console.log(data);
-				// console.log("↓this.data_series");
-				// console.log(this.data_series);
-				// console.log("↓this.strDataItemList");
-				// console.log(this.strDataItemList);
-				// console.log("total_sample_num = " + total_sample_num);
-				
-				main_draw();
-			});
-		}else if(this.intDataType == TYPE_DT){
-			data.forEach(function(d){d.SampleTime = dateFormat2.parse(d.日付);});		// 文字列→日時変換
-			this.strDataItemList.push(d3.keys(data[0]).filter(function(key){return (key!="日付" && key!="HostTime" && key!="N");}));	// dateだけは横軸用データのため除外
-			
-			// Future Works
-		}
-		return (0);
-	}
-	
-	// 新しいデータを読み込み、先頭に追加する
-	this.getNewDataFileBack = function(strFileName, intAdd){
-		var dateFormat1 = d3.time.format("%Y/%m/%d %H:%M:%S.%L");
-		var dateFormat2 = d3.time.format("\'%Y/%m/%d %H:%M:%S.%L");
-		var getCSV = d3.dsv(',', 'text/csv; charset=shift-jis');
-		
-		// これまで読み込んだデータを引き継ぐかどうか設定
-		if(intAdd == ADD_NONE){
-			this.data_series = [];
-		}else if(intAdd == ADD_BACK){
-		}else{
-			console.log("getNewDataFileBack : Error intAdd is incorrect. intAdd = " + intAdd);
-		}
-		
-		// データタイプに応じて読み込み処理を実施
-		if(this.intDataType == TYPE_ST){
-			getCSV(strFileName, (error, data) => {
-				// data file
-				data.forEach((d) => {d.HostTime = dateFormat1.parse(d.HostTime);});			// 文字列→日時変換
-				data.forEach((d) => {d.SampleTime = dateFormat1.parse(d.SampleTime);});		// 文字列→日時変換
-				
-				// もしsample_num個でなかったらそれに合うように変更を加える
-				var tmp_data = data;
-				if(tmp_data.length < sample_num){					// sample_num個未満の場合
-					var tmp_diff = sample_num - tmp_data.length;
-					for(var i = 0; i < tmp_diff; i++){
-						tmp_data.splice(parseInt(tmp_data.length * (i + 1) / tmp_diff - 1), 0, tmp_data[parseInt(tmp_data.length * (i + 1) / tmp_diff - 1)]);
-					}
-				}
-				else if(tmp_data.length > sample_num){				// sample_num個超の場合
-					var tmp_diff = tmp_data.length - sample_num;
-					for(var i = 0; i < tmp_diff; i++){
-						tmp_data.splice(parseInt(tmp_data.length * (i + 1) / tmp_diff - 1), 1);
-					}
-				}
-				
-				for(var i = tmp_data.length - 1; i >= 0; i--){
-					this.data_series.unshift(tmp_data[i]);
-				}
-				
-				total_sample_num = this.data_series.length;
-				
-				// Debug Section
-				// console.log("↓data");
-				// console.log(data);
-				// console.log("↓this.data_series");
-				// console.log(this.data_series);
-				// console.log("↓this.strDataItemList");
-				// console.log(this.strDataItemList);
-				// console.log("total_sample_num = " + total_sample_num);
-				
-				// decimate_dataset();				// データを間引く処理
-				main_draw();
-			});
-		}else if(this.intDataType == TYPE_DT){
-			data.forEach(function(d){d.SampleTime = dateFormat2.parse(d.日付);});		// 文字列→日時変換
-			this.strDataItemList.push(d3.keys(data[0]).filter(function(key){return (key!="日付" && key!="HostTime" && key!="N");}));	// dateだけは横軸用データのため除外
-			
-			// Future Works
-		}
-		return (0);
-	}
-	
-	// データを削除
-	this.delData = function(int_del){
-		if(int_del == DEL_NEXT){
-			this.data_series.splice(this.data_series.length - sample_num, sample_num);
-		}else if(int_del == DEL_BACK){
-			this.data_series.splice(0, sample_num);
-		}else{
-			console.log("delData : Error int_del is incorrect. int_del = " + int_del);
-		}
-		main_draw();
-	}
-	
-	// データの項目によってチェックボックスを追加
-	this.createCheckBox = function(strId){
-		item_list = document.getElementById(strId);
-		for(var i = 0; i < this.strDataItemList.length; i++){
-			var cbLabel = document.createElement("label");
-			var chkbox = document.createElement("input");
-			
-			chkbox.type = "checkbox";
-			chkbox.value = this.strName + "_ch" + String(i);
-			chkbox.id = this.strName + "_item" + String(i);
-			chkbox.onclick = item_list_clicked;
-			cbLabel.appendChild(chkbox);
-			cbLabel.appendChild(document.createTextNode(this.strDataItemList[i]));
-			cbLabel.className = "item_list_label";				// classNameの設定
-			
-			item_list.appendChild(cbLabel);
-			item_list.appendChild(document.createElement('br'));
-		}
-		var tmp = document.getElementById(this.strName + '_item0');
-		tmp.checked = true;										// 最初の1項目目をチェックしておく
-		this.strDrawItemList.push(this.strDataItemList[0]);
-		
-		return(0);
-	}
-	
-	// 設定ファイルの読み取り
-	this.getSettingFile = function(){
-		var getCSV = d3.dsv(',', 'text/csv; charset=shift-jis');
-		getCSV(this.strDefaultPath, (error, data) => {
-			this.data_default = data;
-			this.strDataItemList = data.map(function(d){return d["Name"]});
-			this.createCheckBox("item_list");
-			
-			// console.log("this.dataDefault");
-			// console.log(this.data_default);
-			// console.log("this.strDataItemList");
-			// console.log(this.strDataItemList);
-		});
-		
-		return(0);
-	}
-}
-
-//================================================================================================//
 // チェックボックスで選択アイテムが変更された時の処理                                             //
 // 　⇒　チェックボックスの状態に応じて描画アイテムを追加                                         //
-// 引数 
-// 戻値 
+// 引数 : なし                                                                                    //
+// 戻値 : なし                                                                                    //
 //================================================================================================//
 function item_list_clicked(){
 	for(var i = 0; i < objDSArr.length; i++){
 		if(objDSArr[i].enable == 1){
 			objDSArr[i].strDrawItemList = [];
+			objDSArr[i].intDrawYmin = [];
+			objDSArr[i].intDrawYmax = [];
 			for(var j = 0; j < objDSArr[i].strDataItemList.length; j++){
 				var tmp = document.getElementById(objDSArr[i].strName + '_item' + String(j));
 				if(tmp.checked == true){
 					objDSArr[i].strDrawItemList.push(objDSArr[i].strDataItemList[j]);
+					// objDSArr[i].intDrawYmin.push(objDSArr[i].intDataYmin[j]);
+					// objDSArr[i].intDrawYmax.push(objDSArr[i].intDataYmax[j]);
 				}
 			}
 			// console.log(objDSArr[i].strName + " - strDrawItemList = " + objDSArr[i].strDrawItemList);
@@ -356,6 +147,13 @@ function data_load(target_date, int_add){
 	DD = target_date.getDate();
 	HH = target_date.getHours();
 	mm = target_date.getMinutes();
+	
+	get_num = 0;
+	for(var i = 0; i < objDSArr.length; i++){
+		if(objDSArr[i].enable == 1){
+			get_num += 1;
+		}
+	}
 	
 	for(var i = 0; i < objDSArr.length; i++){
 		if(objDSArr[i].enable == 1){
@@ -389,6 +187,7 @@ function data_del(int_del){
 			}
 		}
 	}
+	main_draw();
 }
 
 //================================================================================================//
@@ -398,12 +197,12 @@ function data_del(int_del){
 //================================================================================================//
 function main_draw(){
 	data_merge();					// d3に渡せるように選択されたアイテムのデータを結合する
-	if(initial_draw == 0){
+	// if(initial_draw == 0){
 		sub_draw(RANGE_DEFAULT);		// 描画処理(yレンジデフォルト設定)
-	}else{
-		sub_draw(RANGE_SPECIAL);		// 描画処理(yレンジ引継ぎ)
-	}
-	initial_draw = 1;
+	// }else{
+		// sub_draw(RANGE_SPECIAL);		// 描画処理(yレンジ引継ぎ)
+	// }
+	// initial_draw = 1;
 	
 	document.getElementById("min_date").textContent = dateYYYYMMDDHHmm(date_min);	// 読み取ったファイルの表示を更新
 	document.getElementById("max_date").textContent = dateYYYYMMDDHHmm(date_max);	// 読み取ったファイルの表示を更新
@@ -416,24 +215,26 @@ function main_draw(){
 // 戻値 
 //================================================================================================//
 function data_merge(){
-	total_sample_num = objDSArr[0].data_series.length;
+	total_sample_num = objDSArr[0].data_series.length;						// データソース1つ目の長さが基準
 	mabiki = parseInt(document.getElementById("text_decimate").value);		// 間引く分母を取得
-	total_sample_num_mabiki = total_sample_num / mabiki;
+	total_sample_num_mabiki = total_sample_num / mabiki;					// 間引き後のサンプル数を計算
+	
+	// yrange引継ぎに向けてコード実装中...
 	yrange_min = [];
 	yrange_max = [];
-	console.log(users);
 	if(users.length != 0){
 		for(var i = 0; i < objDSArr.length; i++){
 			for(var j = 0; j < objDSArr[i].strDrawItemList.length; j++){
-				yrange_min.push(users[i*j+j]["yrange"][0]);
-				yrange_max.push(users[i*j+j]["yrange"][1]);
+				// yrange_min.push(users[i*j+j]["yrange"][0]);
+				// yrange_max.push(users[i*j+j]["yrange"][1]);
 			}
 		}
 	}
-	console.log(yrange_min);
-	console.log(yrange_max);
-	users = [];
+	// console.log(yrange_min);
+	// console.log(yrange_max);
 	
+	// 描画するのに必要なusersオブジェクトを生成
+	users = [];
 	for(var i = 0; i < objDSArr.length; i++){
 		if(objDSArr[i].enable == 1){
 			var tmp_dataset = decimate_dataset(objDSArr[i].data_series, mabiki);
@@ -454,29 +255,24 @@ function data_merge(){
 	}
 	console.log("↓users");
 	console.log(users);
-	console.log(users[0]["yrange"][1]);
+	// console.log(users[0]["yrange"][1]);
 }
 
 //================================================================================================//
 // データ配列を間引く関数                                                                         //
-// 引数 
-// 戻値 
+// 引数 dataset : 間引きしたいデータ配列                                                          //
+//      num     : 間引きたい数(num個に1個のデータを抽出)                                          //
+// 戻値 tmp_dataset : 間引きした後のデータ配列                                                    //
 //================================================================================================//
 function decimate_dataset(dataset, num){
 	tmp_dataset = [];
 	
+	// numで割り切れるインデックスの数値だけ取り出す (num個に1個のデータを抽出したことになる)
 	for(var i = 0; i < dataset.length; i++){
-		if(i % mabiki == 0){
+		if(i % num == 0){
 			tmp_dataset.push(dataset[i]);
 		}
 	}
-	
-	// Debug Section
-	// console.log("↓dataset");
-	// console.log(dataset);
-	// console.log("mabiki = " + mabiki);
-	// console.log("↓tmp_dataset");
-	// console.log(tmp_dataset);
 	
 	return(tmp_dataset);
 }
@@ -590,10 +386,68 @@ function sub_draw(range_select){
 		.attr("width", chart_width)
 		.attr("height", chart_height)
 		.style("opacity", 0)
-	change_zoom($("input[name='zoomOptionsRadios']").val());
-	d3_zoom_scale = 1;
-	d3_zoom_tx = 0;
-	d3_zoom_ty = 0;
+		.on("click", function(d,i){
+			
+			// 1st dataの更新
+			$("#click_data2_x").text($("#click_data1_x").text());
+			$("#click_data1_x").text(dateFormatHHMMSS(new Date(mouse_pos_date)));
+			
+			// 2nd dataの更新 クリックしたエリアによって、取得データを変更
+			var idx = 0;
+			for(var i = 0; i < users.length; i++){
+				if(chart_height / users.length * i <= mouse_pos_y && mouse_pos < chart_height / users.length * (i + 1)){
+					idx = i;
+				}
+			}
+			$("#click_data2_y").text($("#click_data1_y").text());
+			$("#click_data1_y").text(mouse_pos_value[idx]);
+			
+			// 統計値の更新 (平均、標準偏差、N数、最小値、最大値)
+			var ave = 0;
+			var sigma = 0;
+			var N = 0;
+			var min = users[idx]["values"][mouse_pos_index2]["user_num"];
+			var max = users[idx]["values"][mouse_pos_index2]["user_num"];
+			mouse_pos_index2 = mouse_pos_index1;
+			mouse_pos_index1 = mouse_pos_index;
+			
+			if(mouse_pos_index1 <= mouse_pos_index2){
+				var start_cnt = mouse_pos_index1;
+				var finish_cnt = mouse_pos_index2;
+			}else{
+				var start_cnt = mouse_pos_index2;
+				var finish_cnt = mouse_pos_index1;
+			}
+			for(i = start_cnt; i <= finish_cnt; i++){
+				var num = parseFloat(users[idx]["values"][i]["user_num"]);
+				ave += num;
+				if(min > num) min = num;
+				if(max < num) max = num;
+			}
+			ave = ave / (finish_cnt - start_cnt + 1);
+			N = finish_cnt - start_cnt + 1;
+			
+			for(i = start_cnt; i <= finish_cnt; i++){
+				var num = parseFloat(users[idx]["values"][i]["user_num"]);
+				sigma += (num - ave)*(num - ave);
+			}
+			sigma = Math.sqrt(sigma/N);
+			
+			$("#click_data_ave").text(ave.toFixed(3));
+			$("#click_data_sigma").text(sigma.toFixed(3));
+			$("#click_data_N").text(N);
+			$("#click_data_min").text(min);
+			$("#click_data_max").text(max);
+			
+			// Debug Section
+			// console.log("mouse_pos_index1 = " + mouse_pos_index1 + ", mouse_pos_index2 = " + mouse_pos_index2);
+			// console.log("start_cnt = " + start_cnt + ", finish_cnt = " + finish_cnt);
+			// console.log("ave = " + ave + ", min = " + min + ", max = " + max);
+		});
+	change_zoom($("input[name='zoomOptionsRadios']").val());		// 怪しい...？
+	d3_zoom_scale = 1;		// zoomのスケールの初期値は1 (拡大・縮小なし)
+	d3_zoom_tx = 0;			// zoomのx方向トランジッションの初期値は0 (移動なし)
+	d3_zoom_ty = 0;			// zoomのy方向トランジッションの初期値は0 (移動なし)
 		
 	// 凡例の描画
 	draw_legend(svg, users, chart_width - 15, 3);
@@ -640,12 +494,12 @@ function sub_draw(range_select){
 		data_text[i] = "";
 	}
 	
-	// マウス位置(x)に応じた参照線の描画
+	// マウス位置(x)に応じた参照線・テキストの描画
 	var path_x = svg.append("g")
 		.attr("id", "mouse_path_gx")
 		.attr("class", "mouse_path_gx");
 	path_x.append("path")
-		.attr('d', lineMouse([[intClientX, 0], [intClientX, 3000]]))
+		.attr('d', lineMouse([[intClientX - intLeftPos - 1, 0], [intClientX - intLeftPos - 1, 3000]]))
 		.attr('id', 'mouse_path_x')
 		.attr('class', 'mouse_path_x')
 		.attr('stroke', 'black')
@@ -666,7 +520,7 @@ function sub_draw(range_select){
 		.style("text-anchor","end")
 		.text((d) => {return d;});
 	
-	// マウス位置(x)位置に応じた参照線の描画
+	// マウス位置(y)位置に応じた参照線・テキストの描画
 	var path_y = svg.append("g")
 		.attr("id", "mouse_path_gy")
 		.attr("class", "mouse_path_gy");
@@ -675,7 +529,19 @@ function sub_draw(range_select){
 		.attr('id', 'mouse_path_y')
 		.attr('class', 'mouse_path_y')
 		.attr('stroke', 'black')
-		.attr("clip-path", "url(#clip)");
+		.attr("clip-path", "url(#clip)")
+	
+	mouse_text_margin_date = chart_height - 30;
+	path_y.append("text")
+		.attr("class", "mouse_text_x")
+		.attr("id", "mouse_text_x")
+		.attr("transform", "translate(0, 0)")
+		.attr("x", intClientX - intLeftPos - mouse_text_margin_x)
+		.attr("y", mouse_text_margin_y + mouse_text_margin_date)
+		.attr("dy", ".35em")
+		.style("text-anchor","end")
+		.attr("clip-path", "url(#clip)")
+		.text(dateFormatHHMMSS(new Date(mouse_pos_date)));
 	
 	// console.log(data_text);
 	// console.log(intClientX);
@@ -760,8 +626,10 @@ function mouse_move_draw(e){
 		aaa.attr('d', lineMouse([[0, intClientY - intTopPos], [3000, intClientY - intTopPos]]))
 		
 		// マウス位置のデータ表示用テキストを描画
+		mouse_pos_value = [];
 		for(var i = 0; i < users.length; i++){
 			var str = users[i]["values"][mouse_pos_index]["user_num"];
+			mouse_pos_value.push(str);
 			
 			kkk = d3.select("#mouse_text" + i);
 			kkk.attr("x", mouse_pos_x - mouse_text_margin_x)
@@ -770,6 +638,13 @@ function mouse_move_draw(e){
 				.style("text-anchor","end")
 				.text(str);
 		}
+		
+		kkk = d3.select("#mouse_text_x");
+		kkk.attr("x", mouse_pos_x - mouse_text_margin_x)
+			.attr("y", mouse_text_margin_y + mouse_text_margin_date)
+			.attr("dy", ".35em")
+			.style("text-anchor","end")
+			.text(dateFormatHHMMSS(new Date(mouse_pos_date)));
 };
 
 //================================================================================================//
@@ -804,7 +679,7 @@ function xScaleInvIndex(x){
 	x2 = xMax;
 	y1 = 0;
 	y2 = total_sample_num_mabiki;
-	tmp = Math.round((y2 - y1) / (x2 - x1) * (x - x1) + y1);
+	tmp = parseInt(Math.round((y2 - y1) / (x2 - x1) * (x - x1) + y1));
 	
 	// console.log("x1 = " + new Date(x1) + ", x2 = " + new Date(x2) + ", y1 = " + y1 + ", y2 = " + y2);
 	// console.log(tmp);
@@ -832,9 +707,24 @@ function limit(x, min, max){
 }
 
 //================================================================================================//
-// YYMMDDHHの文字列から描画する対象ファイルを変更する処理                                         //
-// 引数 
-// 戻値 
+// Dateオブジェクトから"時:分:秒"のフォーマットの文字列を返す関数                                 //
+//================================================================================================//
+function dateFormatHHMMSS(dt){
+	var y = dt.getFullYear();
+	var m = ("00" + (dt.getMonth()+1)).slice(-2);
+	var d = ("00" + dt.getDate()).slice(-2);
+	var hour = ("0" + dt.getHours()).slice(-2);
+	var min = ("0" + dt.getMinutes()).slice(-2);
+	var sec = ("0" + dt.getSeconds()).slice(-2);
+	var result = hour + ":" + min + ":" + sec;
+	return result;
+}
+
+//================================================================================================//
+// YYMMDDHHの文字列から日時を表す文字列に変換する関数                                             //
+// 引数 YYMMDDHH : 年月日時をそれぞれ2桁で表した文字列 ex) 20050507 ←2020年5月5日7時を表す       //
+// 戻値 str      : Date関数に通すとそのままDate型のオブジェクトを得られる文字列                   //
+//                 ex) 2020/05/05 00:00:00                                                        //
 //================================================================================================//
 function dateChange(YYMMDDHH){
 	var str, YYYY, MM, DD, HH;
@@ -965,7 +855,9 @@ $(function(){
 	}
 	
 	// zoomオプション(x, y, x/y)の選択が変わったときに実行する処理を登録
-	$("input[name='zoomOptionsRadios']").change(function(){change_zoom($(this).val());});
+	$("input[name='zoomOptionsRadios']").change(function(){
+		change_zoom($(this).val());}
+	)
 	
 	// マウスを移動するたびに実行されるイベント
 	document.onmousemove = mouse_move_draw;
@@ -985,7 +877,7 @@ $(function(){
 	
 	// 表示領域の設定 (1画面に収まるように幅・高さを設定) ----------------------------------------//
 	chart_div_top = 120;											// チャート開始高さ(手動調整決め打ち)
-	bot_margin = 150;												// チャート下に必要な領域(手動調整決め打ち)
+	bot_margin = 160;												// チャート下に必要な領域(手動調整決め打ち)
 	base_width = $(".time_chart_contents").width();					// チャート表示領域の幅を取得
 	base_height = $(window).height() - chart_div_top - bot_margin;	// chartオブジェクトの開始高さとwindow高さから表示領域のベース高さを設定
 	margin = {top:10,right:10,bottom:20,left:60};					// 左右・上下のマージンを設定
@@ -1025,8 +917,8 @@ $(function(){
 	// console.log(document.getElementById("time_chart").clientWidth);
 	// console.log(document.getElementById("time_chart").getBoundingClientRect().left);
 	// console.log(document.getElementById("time_chart").getBoundingClientRect().top);
-	console.log("intLeftPos = " + intLeftPos + ", intRightPos = " + intRightPos);
-	console.log("intTopPos = " + intTopPos + ", intBotPos = " + intBotPos);
+	// console.log("intLeftPos = " + intLeftPos + ", intRightPos = " + intRightPos);
+	// console.log("intTopPos = " + intTopPos + ", intBotPos = " + intBotPos);
 	
 	// DataSource選択のチェックボックスを配置 ----------------------------------------------------//
 	var req = new XMLHttpRequest();							// HTTPでファイルを読み込むためのXMLHttpRrequestオブジェクトを生成
@@ -1057,14 +949,19 @@ $(function(){
 			objDSArr[i].strPath = tmp[1];
 			objDSArr[i].strSuffix = tmp[2];
 			objDSArr[i].strDefaultPath = tmp[3];
+			objDSArr[i].item_list_id = "item_list";
+			objDSArr[i].main_draw = main_draw;
+			objDSArr[i].item_list_clicked = item_list_clicked;
 		}
 		
 		// 取得した各文字列でチェックボックスを配置
 		add_checkbox_line(strDataSourceName, "source", set_target_dataset);
 		$("#source" + "0").prop("checked", true);
 		$("#source" + "1").prop("checked", true);
+		$("#source" + "2").prop("checked", true);
 		objDSArr[0].enable = 1;
 		objDSArr[1].enable = 1;
+		objDSArr[2].enable = 1;
 		
 		// 初期描画対象を選択
 		date_cur = new Date('2020/5/6 00:00:00');

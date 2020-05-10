@@ -195,6 +195,12 @@ function DataSource(){
 	// データの項目によってチェックボックスを追加
 	this.createCheckBox = function(strId){
 		item_list = document.getElementById(strId);
+		var nodeLabel = document.createElement("label");
+		nodeLabel.appendChild(document.createTextNode(this.strName));
+		nodeLabel.className = "item_list_label";				// classNameの設定
+		item_list.appendChild(nodeLabel);
+		item_list.appendChild(document.createElement('br'));
+		
 		for(var i = 0; i < this.strDataItemList.length; i++){
 			var cbLabel = document.createElement("label");
 			var chkbox = document.createElement("input");
@@ -203,6 +209,7 @@ function DataSource(){
 			chkbox.value = this.strName + "_ch" + String(i);
 			chkbox.id = this.strName + "_item" + String(i);
 			chkbox.onclick = this.item_list_clicked;
+			cbLabel.appendChild(document.createTextNode("　"));
 			cbLabel.appendChild(chkbox);
 			cbLabel.appendChild(document.createTextNode(this.strDataItemList[i]));
 			cbLabel.className = "item_list_label";				// classNameの設定

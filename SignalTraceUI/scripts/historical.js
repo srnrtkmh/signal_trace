@@ -31,7 +31,7 @@
 //        20/05/06 : 名称変更(usmoak_v3.js → historical.js)                                      //
 //                   マウス位置の横軸値表示を追加                                                 //
 //                   グラフエリア上でクリックした箇所の数値キャプチャ、1回目、2回目まで表示       //
-//                   1回目、2回目で選択した間の基本的な統計値を表示                                                                             //
+//                   1回目、2回目で選択した間の基本的な統計値を表示                               //
 //                                                                                                //
 //================================================================================================//
 
@@ -834,7 +834,7 @@ $(function(){
 	document.getElementById("addDecimateButton").onclick = function(){
 		var tmpTextbox = document.getElementById("text_decimate");
 		
-		if(parseInt(tmpTextbox.value) == 1){
+		if(parseInt(tmpTextbox.value) <= 10){
 			tmpTextbox.value = String(10);
 		}else{
 			tmpTextbox.value = String(parseInt(tmpTextbox.value) + 10);
@@ -869,7 +869,7 @@ $(function(){
 	
 	// 変数の初期化 ------------------------------------------------------------------------------//
 	$('.item_list').empty();
-	document.getElementById("text_decimate").value = "1";
+	document.getElementById("text_decimate").value = "10";
 	for(var i=0; i<100; i++){
 		yrange.push([-1, 1]);
 		yrange_fix.push(0);

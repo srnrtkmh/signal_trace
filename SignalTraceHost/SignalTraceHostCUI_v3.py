@@ -154,7 +154,7 @@ def signal_trace_init():
 if __name__ == '__main__':
 	# 引数処理
 	param = sys.argv
-	if len(param) >= 6:
+	if len(param) >= 7:
 		serialDeviceName = param[1]		# シリアルデバイスへのパス
 		labelFileName = param[2]		# ラベルとして使用するcsvファイル
 		ioChNum = int(param[3])			# 取得するデータの項目数

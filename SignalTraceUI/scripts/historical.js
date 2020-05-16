@@ -834,7 +834,7 @@ $(function(){
 	document.getElementById("addDecimateButton").onclick = function(){
 		var tmpTextbox = document.getElementById("text_decimate");
 		
-		if(parseInt(tmpTextbox.value) <= 10){
+		if(parseInt(tmpTextbox.value) < 10){
 			tmpTextbox.value = String(10);
 		}else{
 			tmpTextbox.value = String(parseInt(tmpTextbox.value) + 10);
